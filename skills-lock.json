@@ -4,7 +4,7 @@
     "claude-code-security-review": {
       "source": "LeonMelamud/claude-code-security-review",
       "sourceType": "github",
-      "computedHash": "d477ea9c4643002e7515708ea7e14516c9d7ad937aec7420b4e3ffc69d6f9a00"
+      "computedHash": "e9bd8c9d2ed29c075f9a5f81cafe8a6c4fd051404250f868a3e162e7cc452547"
     }
   }
 }
