@@ -1,19 +1,28 @@
 # Claude Code Security Reviewer
 
-An AI-powered security review GitHub Action using Claude to analyze code changes for security vulnerabilities. This action provides intelligent, context-aware security analysis for pull requests using Anthropic's Claude Code tool for deep semantic security analysis.
+An AI-powered security review Agent Skill and GitHub Action using Claude to analyze code changes for security vulnerabilities. This tool provides intelligent, context-aware security analysis for your codebase using Anthropic's Claude Code.
 
 ## Features
 
 - **AI-Powered Analysis**: Uses Claude's advanced reasoning to detect security vulnerabilities with deep semantic understanding
-- **Diff-Aware Scanning**: For PRs, only analyzes changed files
-- **PR Comments**: Automatically comments on PRs with security findings
+- **Diff-Aware Scanning**: Only analyzes changed files
 - **Contextual Understanding**: Goes beyond pattern matching to understand code semantics
 - **Language Agnostic**: Works with any programming language
 - **False Positive Filtering**: Advanced filtering to reduce noise and focus on real vulnerabilities
 
-## Quick Start
+## Quick Start: Agent Skill
 
-Add this to your repository's `.github/workflows/security.yml`:
+The primary way to use this tool is as an AI Agent Skill within the Tessl ecosystem. Install it globally:
+
+```bash
+npx skills add LeonMelamud/claude-code-security-review -a claude-code -y
+```
+
+Once installed, you can ask Claude Code to perform a security review of your changes, or use the `/security-review` command directly in your development environment.
+
+## Alternative: GitHub Action
+
+You can also run this security reviewer automatically on pull requests. Add this to your repository's `.github/workflows/security.yml`:
 
 ```yaml
 name: Security Review
@@ -128,19 +137,11 @@ The false positive filtering can also be tuned as needed for a given project's s
 
 ### GitHub Actions
 
-Follow the Quick Start guide above. The action handles all dependencies automatically.
+Follow the Alternative: GitHub Action guide above. The action handles all dependencies automatically.
 
 ### Local Development
 
 To run the security scanner locally against a specific PR, see the [evaluation framework documentation](claudecode/evals/README.md).
-
-### Agent Skill Installation
-
-You can install this as an AI agent skill using the Tessl ecosystem:
-
-```bash
-npx skills add LeonMelamud/claude-code-security-review -a claude-code -y
-```
 
 ## Claude Code Integration: /security-review Command 
 
