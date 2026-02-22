@@ -29,12 +29,11 @@ code-security-audit/
 │       └── eval_engine.py            # Git worktree management + SAST runner
 ├── scripts/                          # Standalone scripts (non-Python-package)
 │   └── comment-pr-findings.js        # Node.js script to post findings as PR review comments
-├── examples/                         # Example customization files
-│   ├── custom-false-positive-filtering.txt
-│   └── custom-security-scan-instructions.txt
 ├── references/                       # Knowledge loaded into context as needed
 │   ├── false-positive-filtering.md   # 20 hard exclusions, signal quality criteria, 12 precedents
-│   └── custom-scan-instructions.md   # Industry templates (compliance, finserv, e-commerce, GraphQL)
+│   ├── custom-scan-instructions.md   # Industry templates (compliance, finserv, e-commerce, GraphQL)
+│   ├── custom-false-positive-filtering.txt   # Example custom FP filtering rules
+│   └── custom-security-scan-instructions.txt # Example custom scan categories
 └── assets/                           # Files used in output
     └── security-review-command.md    # Claude Code /security-review slash command template
 ```
@@ -152,9 +151,9 @@ Reads `findings.json` from cwd. Requires `GITHUB_TOKEN` and `GITHUB_EVENT_PATH`.
 
 ### Example Customization Files
 
-See `examples/` for sample customization files:
-- `custom-false-positive-filtering.txt` — Template for custom FP filtering rules
-- `custom-security-scan-instructions.txt` — Template for custom scan categories
+See `references/` for sample customization files:
+- `references/custom-false-positive-filtering.txt` — Template for custom FP filtering rules
+- `references/custom-security-scan-instructions.txt` — Template for custom scan categories
 
 ## Evaluation Framework
 
