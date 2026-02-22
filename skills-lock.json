@@ -1,10 +1,10 @@
 {
   "version": 1,
   "skills": {
-    "code-security-audit": {
+    "claude-code-security-review": {
       "source": "LeonMelamud/claude-code-security-review",
       "sourceType": "github",
-      "computedHash": "0d0710c890aeea9ae06ff6e386000f9a26223ddab356e9a2d9efacd0ce99db9b"
+      "computedHash": "d477ea9c4643002e7515708ea7e14516c9d7ad937aec7420b4e3ffc69d6f9a00"
     }
   }
 }

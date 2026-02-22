@@ -10,7 +10,7 @@ AI-powered security audit for code changes with false positive filtering. Based 
 ## Bundled Resources
 
 ```
-code-security-audit/
+claude-code-security-review/
 ├── SKILL.md                          # This file — workflow and instructions
 ├── action.yml                        # GitHub Actions composite action definition
 ├── claudecode/                       # Python package (imports: from claudecode.*)
