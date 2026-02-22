@@ -5,7 +5,6 @@
  */
 
 const fs = require('fs');
-const { spawnSync } = require('child_process');
 
 // Parse GitHub context from environment
 const context = {
@@ -21,32 +20,38 @@ const context = {
   }
 };
 
-// GitHub API helper using gh CLI
-function ghApi(endpoint, method = 'GET', data = null) {
-  // Build arguments array safely to prevent command injection
-  const args = ['api', endpoint, '--method', method];
+// GitHub API helper using native fetch
+async function ghApi(endpoint, method = 'GET', data = null) {
+  const url = endpoint.startsWith('http') ? endpoint : `https://api.github.com${endpoint}`;
+  const headers = {
+    'Accept': 'application/vnd.github.v3+json',
+    'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+  
+  const options = {
+    method,
+    headers,
+  };
   
   if (data) {
-    args.push('--input', '-');
+    options.body = JSON.stringify(data);
+    headers['Content-Type'] = 'application/json';
   }
   
   try {
-    const result = spawnSync('gh', args, {
-      encoding: 'utf8',
-      input: data ? JSON.stringify(data) : undefined,
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
+    const response = await fetch(url, options);
     
-    if (result.error) {
-      throw new Error(`Failed to spawn gh process: ${result.error.message}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`GitHub API error ${response.status}: ${errorText}`);
     }
     
-    if (result.status !== 0) {
-      console.error(`Error calling GitHub API: ${result.stderr}`);
-      throw new Error(`gh process exited with code ${result.status}: ${result.stderr}`);
+    if (response.status === 204) {
+      return null;
     }
     
-    return JSON.parse(result.stdout);
+    return await response.json();
   } catch (error) {
     console.error(`Error calling GitHub API: ${error.message}`);
     throw error;
@@ -54,7 +59,7 @@ function ghApi(endpoint, method = 'GET', data = null) {
 }
 
 // Helper function to add reactions to a comment
-function addReactionsToComment(commentId, isReviewComment = true) {
+async function addReactionsToComment(commentId, isReviewComment = true) {
   const reactions = ['+1', '-1']; // thumbs up and thumbs down
   const endpoint = isReviewComment 
     ? `/repos/${context.repo.owner}/${context.repo.repo}/pulls/comments/${commentId}/reactions`
@@ -62,7 +67,7 @@ function addReactionsToComment(commentId, isReviewComment = true) {
   
   for (const reaction of reactions) {
     try {
-      ghApi(endpoint, 'POST', { content: reaction });
+      await ghApi(endpoint, 'POST', { content: reaction });
       console.log(`Added ${reaction} reaction to comment ${commentId}`);
     } catch (error) {
       console.error(`Failed to add ${reaction} reaction to comment ${commentId}:`, error.message);
@@ -71,15 +76,15 @@ function addReactionsToComment(commentId, isReviewComment = true) {
 }
 
 // Helper function to add reactions to all comments in a review
-function addReactionsToReview(reviewId) {
+async function addReactionsToReview(reviewId) {
   try {
     // Get all comments from the review
-    const reviewComments = ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/reviews/${reviewId}/comments`);
+    const reviewComments = await ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/reviews/${reviewId}/comments`);
     
     if (reviewComments && Array.isArray(reviewComments)) {
       for (const comment of reviewComments) {
         if (comment.id) {
-          addReactionsToComment(comment.id, true);
+          await addReactionsToComment(comment.id, true);
         }
       }
     }
@@ -105,7 +110,7 @@ async function run() {
     }
     
     // Get the PR diff to map file lines to diff positions
-    const prFiles = ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/files?per_page=100`);
+    const prFiles = await ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/files?per_page=100`);
     
     // Create a map of file paths to their diff information
     const fileMap = {};
@@ -125,7 +130,7 @@ async function run() {
     }
     
     
-    // Process findings synchronously (gh cli doesn't support async well)
+    // Process findings
     for (const finding of newFindings) {
       const file = finding.file || finding.path;
       const line = finding.line || (finding.start && finding.start.line) || 1;
@@ -174,7 +179,7 @@ async function run() {
     }
     
     // Check for existing review comments to avoid duplicates
-    const comments = ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/comments`);
+    const comments = await ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/comments`);
     
     // Check if we've already commented on these findings
     const existingSecurityComments = comments.filter(comment => 
@@ -195,13 +200,13 @@ async function run() {
         comments: reviewComments
       };
       
-      const reviewResponse = ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/reviews`, 'POST', reviewData);
+      const reviewResponse = await ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/reviews`, 'POST', reviewData);
       
       console.log(`Created review with ${reviewComments.length} inline comments`);
       
       // Add reactions to the comments
       if (reviewResponse && reviewResponse.id) {
-        addReactionsToReview(reviewResponse.id);
+        await addReactionsToReview(reviewResponse.id);
       }
     } catch (error) {
       console.error('Error creating review:', error);
@@ -221,11 +226,11 @@ async function run() {
             commit_id: context.payload.pull_request.head.sha
           };
           
-          const commentResponse = ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/comments`, 'POST', commentData);
+          const commentResponse = await ghApi(`/repos/${context.repo.owner}/${context.repo.repo}/pulls/${context.issue.number}/comments`, 'POST', commentData);
           
           // Add reactions to the individual comment
           if (commentResponse && commentResponse.id) {
-            addReactionsToComment(commentResponse.id, true);
+            await addReactionsToComment(commentResponse.id, true);
           }
         } catch (lineError) {
           console.log(`Could not comment on ${comment.path}:${comment.line} - line might not be in diff context`);
