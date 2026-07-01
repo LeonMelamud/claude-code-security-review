@@ -2,6 +2,8 @@
 
 An AI-powered security review Agent Skill and GitHub Action using Claude to analyze code changes for security vulnerabilities. This tool provides intelligent, context-aware security analysis for your codebase using Anthropic's Claude Code.
 
+> **Upstream sync (verified 2026-07-01):** The audit engine (`prompts.py`, `findings_filter.py`, `github_action_audit.py`, `action.yml`, etc.) is byte-identical to upstream [`anthropics/claude-code-security-review`](https://github.com/anthropics/claude-code-security-review) at HEAD `0c6a49f`. This fork additionally packages a `code-security-audit` Agent Skill and bumps `requests`/`PyGithub` to patch CVE-2023-32681.
+
 ## Features
 
 - **AI-Powered Analysis**: Uses Claude's advanced reasoning to detect security vulnerabilities with deep semantic understanding
